@@ -3,6 +3,8 @@ from fastNLP import Vocabulary
 from fastNLP.models import CNNText
 from fastNLP.io import ModelLoader
 import torch
+from fastNLP.embeddings import BertEmbedding
+from fastNLP.models import BertForSequenceClassification
 
 # get vocab
 data_set_loader = CSVLoader(sep='\t')
@@ -33,15 +35,17 @@ test_data.apply(get_words, new_field_name='words')
 vocab_all.index_dataset(test_data, field_name='words')
 
 test_data.set_input('words')
-
+'''
 EMBED_DIM = 100
-model_cnn = CNNText((len(vocab_all),EMBED_DIM), num_classes=len(vocab_target), dropout=0.1)
-
-ModelLoader.load_pytorch(model_cnn, 'save_model/ceshi.pkl')
+model = CNNText((len(vocab_all),EMBED_DIM), num_classes=len(vocab_target), dropout=0.1)
+'''
+embed = BertEmbedding(vocab_all, model_dir_or_name='en', include_cls_sep=True)
+model = BertForSequenceClassification(embed, len(vocab_target))
+ModelLoader.load_pytorch(model, 'save_model/ceshi.pkl')
 
 #pred = model_cnn.predict(torch.LongTensor([test_data[10]['words']]))
 def predict(instance):
-    pred = model_cnn.predict(torch.LongTensor([instance['words']]))
+    pred = model.predict(torch.LongTensor([instance['words']]))
     pred = vocab_target.to_word(int(pred['pred']))
     return pred
 test_data.apply(predict, new_field_name='target')
