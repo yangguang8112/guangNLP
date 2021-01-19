@@ -43,7 +43,8 @@ loss = CrossEntropyLoss()
 optimizer=optim.RMSprop(model_cnn.parameters(), lr=0.01, alpha=0.99, eps=1e-08, weight_decay=0, momentum=0, centered=False)
 N_EPOCHS = 10
 BATCH_SIZE = 16
-trainer = Trainer(model=model_cnn, train_data=train_data, dev_data=dev_data, loss=loss, metrics=metrics,optimizer=optimizer,n_epochs=N_EPOCHS, batch_size=BATCH_SIZE)
+device = 0 if torch.cuda.is_available() else 'cpu'
+trainer = Trainer(model=model_cnn, train_data=train_data, dev_data=dev_data, loss=loss, metrics=metrics,optimizer=optimizer,n_epochs=N_EPOCHS, batch_size=BATCH_SIZE, device=device)
 trainer.train()
 
 saver = ModelSaver("save_model/ceshi.pkl")
