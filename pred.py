@@ -2,6 +2,7 @@ from fastNLP.io.loader import CSVLoader
 from fastNLP import Vocabulary
 from fastNLP.models import CNNText
 from fastNLP.io import ModelLoader
+import torch
 
 # get vocab
 data_set_loader = CSVLoader(sep='\t')
