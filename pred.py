@@ -5,6 +5,7 @@ from fastNLP.io import ModelLoader
 import torch
 from fastNLP.embeddings import BertEmbedding
 from fastNLP.models import BertForSequenceClassification
+from fastNLP.core.utils import _move_model_to_device, _move_dict_value_to_device, _get_model_device
 
 # get vocab
 data_set_loader = CSVLoader(sep='\t')
@@ -16,6 +17,8 @@ def get_words(instance):
     if not ins:
         ins.append('nothing')
     return ins
+
+
 data_set.apply(get_words, new_field_name='words')
 vocab_all = Vocabulary()
 vocab_all.from_dataset(data_set, field_name='words')
@@ -39,15 +42,20 @@ test_data.set_input('words')
 EMBED_DIM = 100
 model = CNNText((len(vocab_all),EMBED_DIM), num_classes=len(vocab_target), dropout=0.1)
 '''
+device = 0 if torch.cuda.is_available() else 'cpu'
 embed = BertEmbedding(vocab_all, model_dir_or_name='en', include_cls_sep=True)
 model = BertForSequenceClassification(embed, len(vocab_target))
 ModelLoader.load_pytorch(model, 'save_model/ceshi.pkl')
+_move_model_to_device(model, device=device)
 
 #pred = model_cnn.predict(torch.LongTensor([test_data[10]['words']]))
 def predict(instance):
-    pred = model.predict(torch.LongTensor([instance['words']]))
+    x_batch = torch.LongTensor([instance['words']])
+    x_batch = x_batch.to(device=_get_model_device(model))
+    pred = model.predict(x_batch)
     pred = vocab_target.to_word(int(pred['pred']))
     return pred
+
 test_data.apply(predict, new_field_name='target')
 
 out_file = open('data/1/sub2021.1.19.csv', 'w')
